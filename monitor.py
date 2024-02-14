@@ -48,20 +48,43 @@ except FileNotFoundError:
     print(f"Error: {urls_file} not found")
     sys.exit()
 
-# Step 3
-socket_connections = []
+# Create sock and make request
 for url in parsed_urls:
 
     # Unpack the tuple and try to establish a connection
     original_url, host, port, path = url
     sock = None
+    # Step 2
     try:
         sock = socket.create_connection((host, port), timeout=5)
-        socket_connections.append(sock)
     except Exception as e:
+        #Step 3
         print(f'Network Error for entry {line}:\n {e}')
         print(f"URL: {original_url}\nStatus: Network Error")
-print(socket_connections)
+
+    #Step 4
+    if sock:
+        # send http request
+        request = f'GET {path} HTTP/1.0\r\n'
+        request += f'Host: {host}\r\n'
+        request += '\r\n'
+        sock.send(bytes(request, 'utf-8'))
+
+        '''
+        TODO: Parse the [response] so that we can output how it is expected for step 5
+        ex: 
+        URL: http://inet.cs.fiu.edu/
+        Status: 200 OK
+        '''
+        # receive http response
+        response = b''
+        while True:
+            data = sock.recv(4096)
+            if not data:
+                break
+            response += data
+        # print(response.decode('utf-8'))
+        sock.close()
 
 # # Example below
 #
