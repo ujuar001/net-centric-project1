@@ -19,8 +19,6 @@ def parseUrl(line):
     elif line.startswith("https://"):
         line = line.replace("https://", "", 1)
         port = 443
-    # if line.startswith("www."):
-    #     line = line.replace("www.", "", 1)
     # Split the line by '/' to separate hostname and path if exists
     parts = line.split('/', 1)
     host = parts[0]
@@ -47,6 +45,8 @@ def analyze_response_status(response):
         headers[key] = value
 
     return status_line, headers, body_str
+
+# Creates a new sock and establishes TCP connection
 def createTCPConnection(original_url, host, port):
     sock = None
     # Step 2
@@ -58,6 +58,7 @@ def createTCPConnection(original_url, host, port):
         print(f"URL: {original_url}\nStatus: Network Error\n")
         return None
     return sock
+# Make gets request
 def sendGetRequest(sock, path, url):
     #Step 4
     if sock:
@@ -82,7 +83,7 @@ def sendGetRequest(sock, path, url):
         return response
     return None
 
-# #step 7
+
 # Function to fetch referenced objects (e.g., images)
 def fetch_referenced_objects(html_content, host, original_url):
     # Find all image URLs in the HTML content
@@ -112,10 +113,7 @@ if len(sys.argv) != 2:
 urls_file = sys.argv[1]
 
 '''
-Step 2. 
-
-Function to parse file input. Cleans up each entry by removing trailing or leading whitespace and obtains the host,port,
-and path (if given) and inserts them into a tuple for easier processing when creating sockets connections
+Parse the urls and create tuple to make them easy to work with
 '''
 parsed_urls = [] #tuple that contains (host,port,path if given)
 try:
@@ -132,7 +130,7 @@ except FileNotFoundError:
     print(f"Error: {urls_file} not found")
     sys.exit()
 
-# Create sock and make request
+# Go through each url, create a sock and make get request. Handle redirects if neeed
 for url in parsed_urls:
 
     # Unpack the tuple and try to establish a connection
@@ -143,18 +141,18 @@ for url in parsed_urls:
     if not sock: continue
 
     # Create HTTP Get request
-    # print("Hostname:", host, "Port:", port, "Path:", path, "\n")
     response = sendGetRequest(sock, path if path else "/", original_url)
     if response:
         status, headers, body = analyze_response_status(response.decode('utf-8', errors='ignore'))
         print(f"URL: {original_url}\nStatus: {extract_status_code(status)}")
+        # Follow any potential redirects
         while '301' in status or '302' in status:
             original_url, host, port, path = parseUrl(headers['Location'])
             sock = createTCPConnection(original_url, host, port)
             response = sendGetRequest(sock, path if path else "/", original_url)
             status, headers, body = analyze_response_status(response.decode('utf-8', errors='ignore'))
             print(f"Redirected URL: {original_url}\nStatus: {extract_status_code(status)}") # formats status to remove extra info
-            # sys.exit()
+        # extract image objects
         fetch_referenced_objects(body, host, original_url)
     print("\n")
     sock.close()
