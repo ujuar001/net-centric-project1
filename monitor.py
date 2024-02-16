@@ -81,8 +81,6 @@ def sendGetRequest(sock, path, url):
             except Exception as e:
                 print(f"URL: {url}\nResponse: {e}")
                 return None
-                # You can handle the error here, or re-raise it if needed
-                # raise  # Uncomment this line if you want to re-raise the exception
         return response
     return None
 
@@ -117,9 +115,6 @@ def fetch_referenced_objects(html_content, host, original_url):
         status, headers, body = analyze_response_status(response.decode('utf-8', errors='ignore'))
         print(f"Referenced URL: {abs_image_url}\nStatus: {extract_status_code(status)}")
 
-# You would need to define `createTCPConnection`, `sendGetRequest`, `analyze_response_status`,
-# and `extract_status_code` functions or methods appropriately in your code.
-
 def extract_status_code(response):
     return ' '.join(response.split(' ', 2)[1:])
 
@@ -145,8 +140,6 @@ try:
         for line in file:
             tupledData = parseUrl(line)
             parsed_urls.append(tupledData)
-            # print("Hostname:", host, "Port:", port, "Path:", path, "\n")
-
 
 except FileNotFoundError:
     print(f"Error: {urls_file} not found")
