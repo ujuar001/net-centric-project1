@@ -57,7 +57,6 @@ def createTCPConnection(original_url, host, port):
             sock = context.wrap_socket(sock, server_hostname=host)
     except Exception as e:
         #Step 3
-        # print(f'Network Error for entry {line}:\n {e}')
         print(f"URL: {original_url}\nStatus: Network Error\n")
         return None
     return sock
@@ -168,5 +167,5 @@ for url in parsed_urls:
             print(f"Redirected URL: {original_url}\nStatus: {extract_status_code(status)}") # formats status to remove extra info
         # extract image objects
         fetch_referenced_objects(body, host, original_url)
-    print("\n")
+    print()
     sock.close()
